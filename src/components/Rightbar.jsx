@@ -11,6 +11,8 @@ import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ListItemText from "@material-ui/core/ListItemText";
 import axios from "axios";
 import { useHistory } from "react-router";
+import { getUser } from "../User";
+import packageJson from "../../package.json";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -44,58 +46,68 @@ const useStyles = makeStyles((theme) => ({
     padding: 6,
     borderRadius: 25,
     backgroundColor: "#EEEBF0",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
   },
 }));
-
-const getPeople = async (setPeople) => {
-  try {
-    const res = await axios.get("/api/users/people/discover");
-
-    setPeople(res.data);
-  } catch (error) {
-    console.log(error);
-  }
-};
 
 export default function Rightbar() {
   const history = useHistory();
   const classes = useStyles();
-  const [people, setPeople] = useState([]);
+  const [papers, setPapers] = useState([]);
+
+  let user = getUser();
+
+  let config = {
+    headers: {
+      Authorization: "Token " + user.key,
+    },
+  };
+
+  const getPapers = async () => {
+    try {
+      var res = await axios.get("/api/v1/pdf/view_history/", config);
+
+      let len = res.data.length;
+      for (var i = 0; i < len; i++) {
+        var pdfUrl = await axios.get("/api/v1/pdf/" + res.data[i].id, config);
+        pdfUrl = pdfUrl.data.file;
+        res.data[i]["file"] = pdfUrl;
+      }
+      setPapers(res.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const getPaperDetails = async (paperID) => {
+    try {
+      let res = await axios.get("/api/v1/pdf/" + paperID, config);
+      return res.data.file;
+    } catch (error) {
+      return "";
+    }
+  };
 
   useEffect(() => {
-    getPeople(setPeople);
+    getPapers();
   }, []);
 
   const handleClick = async () => {};
   return (
-    <div>
-      <div className={classes.search}>
-        <div className={classes.searchIcon}>
-          <SearchIcon />
-        </div>
-        <InputBase
-          placeholder="search people"
-          classes={classes.inputInput}
-          inputProps={{ "aria-label": "search" }}
-        />
-      </div>
-      <div className={classes.discover}>
-        <h5>People you may know</h5>
-
-        {people.map((item) => (
+    <div className={classes.discover}>
+      <h5>Recently Viewed Papers</h5>
+      <div>
+        {papers.map((item) => (
           <List>
-            <ListItem
-              button
-              onClick={async (event) => {
-                history.push("/profile/" + item._id);
-              }}
-            >
-              <Avatar
-                aria-label="recipe"
-                src="https://lumiere-a.akamaihd.net/v1/images/ef91b3eba7549321e53d2c6a18b752a9cf5d2637.jpeg?"
-              ></Avatar>
+            <ListItem>
               <Typography style={{ padding: 3 }}>
-                {item.firstname + " " + item.lastname}
+                <a
+                  href={packageJson.proxy + item.file}
+                  style={{ textDecoration: "none", color: "blue" }}
+                >
+                  {item.pdf_name}
+                </a>
               </Typography>
             </ListItem>
           </List>

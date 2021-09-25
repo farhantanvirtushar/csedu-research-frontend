@@ -85,11 +85,16 @@ export default function Post(props) {
         }).format(new Date(props.post.pdf_uploaded_at))}
       />
       <CardContent>
+        <Typography variant="body1" component="p">
+          <a
+            href={packageJson.proxy + pdf}
+            style={{ textDecoration: "none", color: "blue" }}
+          >
+            {props.post.pdf_name}
+          </a>
+        </Typography>
         <Typography variant="body1" color="textPrimary" component="p">
           {props.post.pdf_description}
-        </Typography>
-        <Typography variant="body1" component="p">
-          <a href={packageJson.proxy + pdf}>{props.post.pdf_name}</a>
         </Typography>
       </CardContent>
     </Card>
