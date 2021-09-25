@@ -50,57 +50,33 @@ const useStyles = makeStyles((theme) => ({
   },
   profileInfo: {
     marginTop: 50,
+    marginBottom: 20,
     marginLeft: 10,
-  },
-  profileButtons: {
-    alignSelf: "flex-end",
-    margin: 10,
+    fontWeight: "bold",
   },
 }));
 
-const getProfile = async (setProfile, id) => {
-  const res = await axios.get("/api/users/" + id);
-
-  setProfile(res.data);
-};
-
-const getPosts = async (setPosts, id) => {
-  const res = await axios.get("/api/posts/people/" + id);
-
-  setPosts(res.data);
-};
-
 export default function Profile() {
-  const { id } = useParams();
   let user = getUser();
 
   const classes = useStyles();
 
-  const [profile, setProfile] = useState(null);
-  const [follow, setFollow] = useState(false);
   const [posts, setPosts] = useState([]);
 
-  const handleFollow = async () => {
-    if (follow) {
-      setFollow(false);
-      await axios.put("/api/users/" + id + "/unfollow", { userID: user._id });
-      user.followings.pop(String(id));
-    } else {
-      setFollow(true);
-      await axios.put("/api/users/" + id + "/follow", { userID: user._id });
-      user.followings.push(String(id));
-    }
-    user = updateUser(user);
+  let config = {
+    headers: {
+      Authorization: "Token " + user.key,
+    },
   };
 
-  useEffect(() => {
-    getProfile(setProfile, id);
-    getPosts(setPosts, id);
+  const getProfile = async () => {
+    const res = await axios.get("/api/v1/profile/", config);
 
-    if (user.followings.find((item) => item == id)) {
-      setFollow(true);
-    }
-  }, [id]);
+    setPosts(res.data);
+  };
+  useEffect(() => {
+    getProfile();
+  }, []);
 
   return (
     <div>
@@ -117,37 +93,19 @@ export default function Profile() {
             />
           </CardMedia>
 
-          <div className={classes.profileButtons}>
-            {user._id == id ? (
-              <Button variant="contained" color="primary">
-                Edit Profile
-              </Button>
-            ) : (
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleFollow}
-              >
-                {follow ? "Unfollow" : "Follow"}
-              </Button>
-            )}
-          </div>
-
-          <div className={classes.profileInfo}>
-            <Typography variant="body2" color="textSecondary" component="p">
-              <div style={{ color: "black", fontWeight: "bold", fontSize: 20 }}>
-                {profile == null
-                  ? ""
-                  : profile.firstname + " " + profile.lastname}
-              </div>
-              {profile == null ? "" : "@" + profile.username}
-            </Typography>
-          </div>
+          <Typography
+            variant="h5"
+            color="textPrimary"
+            component="p"
+            className={classes.profileInfo}
+          >
+            {user.username}
+          </Typography>
         </div>
       </Card>
       <div>
         {posts.map((item) => (
-          <Post key={item._id} post={item} />
+          <Post key={item.id} post={item} />
         ))}
       </div>
     </div>

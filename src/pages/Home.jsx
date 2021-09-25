@@ -37,7 +37,7 @@ export default function Home() {
               <Route exact path="/">
                 <Feed />
               </Route>
-              <Route path="/profile/:id">
+              <Route path="/profile/">
                 <Profile />
               </Route>
             </Box>

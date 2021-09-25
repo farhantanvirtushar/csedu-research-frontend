@@ -75,7 +75,7 @@ export default function Leftbar() {
         <ListItem
           button
           onClick={(event) => {
-            history.push("/profile/" + user._id);
+            history.push("/profile/");
           }}
         >
           <ListItemIcon>
